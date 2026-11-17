@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Checkout from GitHub') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/Rajathjavagal/amazon-devops-pipeline.git'
+            }
+        }
+
+        stage('Build Amazon') {
+            steps {
+                dir('Amazon/amazon-app') {
+                    sh 'mvn clean package'
+                }
+            }
+        }
+
+        stage('Build SKY') {
+            steps {
+                dir('SKY/sky-app') {
+                    sh 'mvn clean package'
+                }
+            }
+        }
+
+        stage('Build springcore') {
+            steps {
+                dir('springcore/springcore-app') {
+                    sh 'mvn clean package'
+                }
+            }
+        }
+
+    stage('Archive Artifacts') {
+    steps {
+        archiveArtifacts artifacts: 'Amazon/amazon-app/target/.jar,SKY/sky-app/target/.jar,springcore/springcore-app/target/*.jar',
+                         fingerprint: true
+       }
+    }   
+}
+
+    post {
+        success {
+            echo 'All three projects built successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed. Check the console output.'
+        }
+    }
+}
+
